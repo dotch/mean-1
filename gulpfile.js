@@ -8,22 +8,24 @@ var _ = require('lodash'),
 	testAssets = require('./config/assets/test'),
 	gulp = require('gulp'),
 	gulpLoadPlugins = require('gulp-load-plugins'),
-	runSequence = require('run-sequence'),
 	plugins = gulpLoadPlugins();
 
 // Set NODE_ENV to 'test'
-gulp.task('env:test', function () {
+gulp.task('env:test', function (done) {
 	process.env.NODE_ENV = 'test';
+	done();
 });
 
 // Set NODE_ENV to 'development'
-gulp.task('env:dev', function () {
+gulp.task('env:dev', function (done) {
 	process.env.NODE_ENV = 'development';
+	done();
 });
 
 // Set NODE_ENV to 'production'
-gulp.task('env:prod', function () {
+gulp.task('env:prod', function (done) {
 	process.env.NODE_ENV = 'production';
+	done();
 });
 
 // Nodemon task
@@ -163,31 +165,19 @@ gulp.task('protractor', function () {
 });
 
 // Lint CSS and JavaScript files.
-gulp.task('lint', function(done) {
-	runSequence('less', 'sass', ['csslint', 'jshint'], done);
-});
+gulp.task('lint', gulp.series('less', 'sass', gulp.parallel('csslint', 'jshint')));
 
 // Lint project files and minify them into two production files.
-gulp.task('build', function(done) {
-	runSequence('env:dev' ,'lint', ['uglify', 'cssmin'], done);
-});
+gulp.task('build', gulp.series('env:dev', 'lint', gulp.parallel('uglify', 'cssmin')));
 
 // Run the project tests
-gulp.task('test', function(done) {
-	runSequence('env:test', ['karma', 'mocha'], done);
-});
+gulp.task('test', gulp.series('env:test', gulp.parallel('karma', 'mocha')));
 
 // Run the project in development mode
-gulp.task('default', function(done) {
-	runSequence('env:dev', 'lint', ['nodemon', 'watch'], done);
-});
+gulp.task('default', gulp.series('env:dev', 'lint', gulp.parallel('nodemon', 'watch')));
 
 // Run the project in debug mode
-gulp.task('debug', function(done) {
-	runSequence('env:dev', 'lint', ['nodemon', 'watch'], done);
-});
+gulp.task('debug', gulp.series('env:dev', 'lint', gulp.parallel('nodemon', 'watch')));
 
 // Run the project in production mode
-gulp.task('prod', function(done) {
-	runSequence('build', 'lint', ['nodemon', 'watch'], done);
-});
+gulp.task('prod', gulp.series('build', 'lint', gulp.parallel('nodemon', 'watch')));
